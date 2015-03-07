@@ -9,7 +9,7 @@ FILE *fileOpen(char *fileName)
 
     if((fp = fopen(fileName,"r+b")) == NULL){
         fclose(fp);
-        if((fp = fopen(fileName,"w+b")) == NULL)
+    	if((fp = fopen(fileName,"w+b")) == NULL)
             printf("ERRO AO ABRIR O ARQUIVO\n");
     }
     
