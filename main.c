@@ -3,6 +3,14 @@
 #include <conio.h>
 
 #include "Funcs.h"
+#include "FileFuncs.h"
+
+#define Ap1 "AP1.bin"
+#define Ap2 "AP2.bin"
+#define BtreeIdx "btIdx.bin"
+#define HashIdx "hashIdx.bin"
+
+
 
 
 void cabecalho()
@@ -36,7 +44,11 @@ void validaOpcao(int opcao)
 int main()
 {
     int opcao;
-
+	
+	FILE *fpAP1 = fileOpen(Ap1);
+	FILE *fpAP2 = fileOpen(Ap2);
+	FILE *fpBtree = fileOpen(BtreeIdx);
+	FILE *fpHash = fileOpen(HashIdx);
     
     do{
         system("cls");
@@ -44,7 +56,12 @@ int main()
         opcao = menu();
         validaOpcao(opcao);
     }while(opcao != 0);
-
+	
+	fclose(fpAP1);
+	fclose(fpAP2);
+	fclose(fpBtree);
+	fclose(fpHash);	
+	
     system("pause");
     return 0;
 }
