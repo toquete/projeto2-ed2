@@ -29,6 +29,8 @@ typedef struct {
 
 //****************   ARVORE B   ***********************
 //**** constantes
+#define BtreeIdx "btIdx.bin"
+
 #define MAXKEYS   4               // numero maximo de chaves em uma pagina
 #define MINKEYS   2               // numero minimo de chaves em uma pagina apos split
 #define NIL       (-1)            // RRN nulo
@@ -45,7 +47,9 @@ typedef struct btree_page {
 } BTPAGE;
 
 short btroot; // RRN da pagina raiz da arvore B
+FILE *btfd;
 
+//*****************  Fim ARVORE B   *****************************
 void cadastraCachorro(FILE **AP2)
 {
     regAP2 reg;
@@ -88,7 +92,7 @@ int existeCachorro(FILE *AP2, int codigo)
     return NO;
 }
 
-void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpBtree, FILE **fpHash)
+void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
 {
     regAP1 reg;
     
@@ -120,3 +124,30 @@ void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpBtree, FILE **fpHash)
     fwrite(&reg, sizeof(regAP1), 1, *fpAP1);   
 }
 
+
+void inicializar() {
+	
+	int size;
+	char valorRoot[5];
+	
+	btfd = fileOpen(BtreeIdx);
+	
+    fseek(btfd,1,SEEK_END);
+    size = ftell(btfd) - 1;
+    printf("tam %d",size);
+    if(size){
+    	fread(&btroot,sizeof(short),1,btfd);
+	}
+	else{
+		btroot = NIL;
+		itoa(btroot,valorRoot,10);
+		fwrite(valorRoot,sizeof(short),1,btfd);
+	}
+	
+	printf("raiz     %d", btroot);
+	rewind(btfd);
+	fread(valorRoot,sizeof(short),1,btfd);
+	printf("     %d", atoi(valorRoot));
+	system("pause");
+	fclose(btfd);
+}

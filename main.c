@@ -7,7 +7,6 @@
 
 #define Ap1 "AP1.bin"
 #define Ap2 "AP2.bin"
-#define BtreeIdx "btIdx.bin"
 #define HashIdx "hashIdx.bin"
 
 #define MENUPRINCIPAL 0
@@ -63,22 +62,20 @@ int cabecalho(int tipomenu)
     }
 }
 
-void abreArquivos(FILE **fpAP1, FILE **fpAP2, FILE **fpBtree, FILE **fpHash)
+void abreArquivos(FILE **fpAP1, FILE **fpAP2 , FILE **fpHash)
 {
     *fpAP1   = fileOpen(Ap1);
     *fpAP2   = fileOpen(Ap2);
-    *fpBtree = fileOpen(BtreeIdx);
     *fpHash  = fileOpen(HashIdx);
 }
-void fechaArquivos(FILE **fpAP1, FILE **fpAP2, FILE **fpBtree, FILE **fpHash)
+void fechaArquivos(FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
 {
     fclose(*fpAP1);
 	fclose(*fpAP2);
-	fclose(*fpBtree);
 	fclose(*fpHash);
 }
 
-void validaOpcao(int opcao, FILE **fpAP1, FILE **fpAP2, FILE **fpBtree, FILE **fpHash)
+void validaOpcao(int opcao, FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
 { 
     int op;
     
@@ -97,7 +94,7 @@ void validaOpcao(int opcao, FILE **fpAP1, FILE **fpAP2, FILE **fpBtree, FILE **f
             if (op == 1)
               cadastraCachorro(fpAP2);
             else
-              cadastraVacina(fpAP1, fpAP2, fpBtree, fpHash);
+              cadastraVacina(fpAP1, fpAP2, fpHash);
             break;                
     }   
 }
@@ -107,17 +104,19 @@ int main()
     int opcao;
 	FILE *fpAP1, *fpAP2, *fpBtree, *fpHash;
 	
-	abreArquivos(&fpAP1, &fpAP2, &fpBtree, &fpHash);
+	abreArquivos(&fpAP1, &fpAP2, &fpHash);
+    
+    inicializar();
     
     do
     {
         cabecalho(MENUPRINCIPAL);
         scanf("%d", &opcao);
-        validaOpcao(opcao, &fpAP1, &fpAP2, &fpBtree, &fpHash);
+        validaOpcao(opcao, &fpAP1, &fpAP2, &fpHash);
     }
     while(opcao != 0);
 	
-	fechaArquivos(&fpAP1, &fpAP2, &fpBtree, &fpHash);	
+	fechaArquivos(&fpAP1, &fpAP2, &fpHash);	
 	
     system("pause");
     return 0;

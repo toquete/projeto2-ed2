@@ -6,7 +6,7 @@
 FILE *fileOpen(char *fileName)
 {
     FILE *fp;
-
+	
     if ((fp = fopen(fileName,"r+b")) == NULL)
     {
         fclose(fp);
