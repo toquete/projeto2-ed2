@@ -1,3 +1,8 @@
-void cadastraCachorro(FILE **AP2);
-void existeCachorro(FILE **AP2, int codigo);
-void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpHash);
+void cadastraCachorro();
+void existeCachorro(int codigo);
+void cadastraVacina();
+void inicializar();
+void encerrar();
+void criaHash();
+int funcaoHash(int codigo);
+void insereHash(int hashAddress, int chave, int RRN);

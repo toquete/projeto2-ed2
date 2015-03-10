@@ -5,10 +5,6 @@
 #include "Funcs.h"
 #include "FileFuncs.h"
 
-#define Ap1 "AP1.bin"
-#define Ap2 "AP2.bin"
-#define HashIdx "hashIdx.bin"
-
 #define MENUPRINCIPAL 0
 #define INSERCAO      1
 #define ARVOREB       1
@@ -62,20 +58,7 @@ int cabecalho(int tipomenu)
     }
 }
 
-void abreArquivos(FILE **fpAP1, FILE **fpAP2 , FILE **fpHash)
-{
-    *fpAP1   = fileOpen(Ap1);
-    *fpAP2   = fileOpen(Ap2);
-    *fpHash  = fileOpen(HashIdx);
-}
-void fechaArquivos(FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
-{
-    fclose(*fpAP1);
-	fclose(*fpAP2);
-	fclose(*fpHash);
-}
-
-void validaOpcao(int opcao, FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
+void validaOpcao(int opcao)
 { 
     int op;
     
@@ -92,9 +75,9 @@ void validaOpcao(int opcao, FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
                 cabecalho(INSERCAO);
             }*/
             if (op == 1)
-              cadastraCachorro(fpAP2);
+              cadastraCachorro();
             else
-              cadastraVacina(fpAP1, fpAP2, fpHash);
+              cadastraVacina();
             break;                
     }   
 }
@@ -102,9 +85,6 @@ void validaOpcao(int opcao, FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
 int main()
 {
     int opcao;
-	FILE *fpAP1, *fpAP2, *fpBtree, *fpHash;
-	
-	abreArquivos(&fpAP1, &fpAP2, &fpHash);
     
     inicializar();
     
@@ -112,11 +92,11 @@ int main()
     {
         cabecalho(MENUPRINCIPAL);
         scanf("%d", &opcao);
-        validaOpcao(opcao, &fpAP1, &fpAP2, &fpHash);
+        validaOpcao(opcao);
     }
     while(opcao != 0);
-	
-	fechaArquivos(&fpAP1, &fpAP2, &fpHash);	
+		
+	encerrar();
 	
     system("pause");
     return 0;

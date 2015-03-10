@@ -5,10 +5,13 @@
 
 #include "FileFuncs.h"
 
-
 /********************************************************
-			Definicoes das estruturas
+           Definições das estruturas/ponteiros 
+                dos arquivos principais
 *********************************************************/
+#define Ap1 "AP1.bin"
+#define Ap2 "AP2.bin"
+
 typedef struct {
 	int codigoControle;
     int codigoCachorro;
@@ -23,9 +26,9 @@ typedef struct {
     char nomeCachorro[30];	
 } regAP2;
 
-
+FILE *fpAP1;
+FILE *fpAP2;
 /*******************************************************/
-
 
 //****************   ARVORE B   ***********************
 //**** constantes
@@ -39,7 +42,6 @@ typedef struct {
 #define YES       1
 #define PAGESIZE  sizeof(BTPAGE)  // tamanho de uma pagina
 
-
 typedef struct btree_page {
   short keycount;         // numero de chaves presentes na pagina
   regAP1 key[MAXKEYS];     // chaves da pagina
@@ -47,17 +49,134 @@ typedef struct btree_page {
 } BTPAGE;
 
 short btroot; // RRN da pagina raiz da arvore B
-FILE *btfd;
+FILE *fpBtree;
 
 //*****************  Fim ARVORE B   *****************************
-void cadastraCachorro(FILE **AP2)
+
+//**********************      HASH      *************************
+#define HashIdx "hashIdx.bin"
+
+#define CESTOS 2                  //quantidade de cestos (buckets)
+#define MAXHASH 11                //quantidade máxima de celulas hash no índice
+ 
+typedef struct {
+    int chave;
+    int pos;            
+} cellHash;
+
+typedef struct {
+    int cont;
+    cellHash registro[CESTOS];   
+} regHash;
+
+FILE *fpHash;
+//***************************************************************
+
+void criaHash()
+{
+    int i, j;
+    regHash reg;
+    
+    fseek(fpHash, 0, SEEK_SET);
+    for (i = 0; i < MAXHASH; i++)
+    {
+        reg.cont = 0;
+        for (j = 0; j < CESTOS; j++)
+        {
+            reg.registro[j].chave = -1;
+            reg.registro[j].pos   = -1;   
+        }
+        fwrite(&reg, sizeof(regHash), 1, fpHash);
+    }    
+}
+
+int funcaoHash(int codigo)
+{
+    return (int) codigo/MAXHASH;
+}
+
+void insereHash(int hashAddress, int chave, int RRN)
+{
+    int tentativa = 0;
+    regHash reg;
+    
+    fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
+    fread(&reg, sizeof(regHash), 1, fpHash);
+    
+    printf("\n Endereco: %d", hashAddress);
+    if (reg.cont == 2)
+    {
+        while (reg.cont == 2)
+        {
+            tentativa++;
+            printf("\n Colisao");
+            printf("\n Tentativa %d", tentativa);
+            if (hashAddress == (MAXHASH -1))
+              hashAddress = 0;
+            else
+              hashAddress++;    
+            fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
+            fread(&reg, sizeof(regHash), 1, fpHash);
+        }
+    }
+    printf("\n Chave %d inserida com sucesso!", chave);
+    getch();
+    
+    reg.cont                         = reg.cont + 1;
+    reg.registro[reg.cont - 1].chave = chave;
+    reg.registro[reg.cont - 1].pos   = RRN;
+    fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
+    fwrite(&reg, sizeof(regHash), 1, fpHash);
+}
+
+void inicializar() 
+{
+	int size;
+	char valorRoot[5];
+	
+	fpAP1   = fileOpen(Ap1);
+	fpAP2   = fileOpen(Ap2);
+	fpHash  = fileOpen(HashIdx);
+	fpBtree = fileOpen(BtreeIdx);
+	
+	if (isEmpty(fpHash))
+	  criaHash();
+	
+    fseek(fpBtree,1,SEEK_END);
+    size = ftell(fpBtree) - 1;
+    printf("tam %d",size);
+    if(size){
+    	fread(&btroot, sizeof(short), 1, fpBtree);
+	}
+	else{
+		btroot = NIL;
+		itoa(btroot, valorRoot, 10);
+		fwrite(valorRoot, sizeof(short), 1, fpBtree);
+	}
+	
+	printf("raiz     %d", btroot);
+	rewind(fpBtree);
+	fread(valorRoot,sizeof(short),1,fpBtree);
+	printf("     %d", atoi(valorRoot));
+	system("pause");
+}
+
+void encerrar()
+{
+    fclose(fpAP1);
+	fclose(fpAP2);
+	fclose(fpHash);
+	fclose(fpBtree);
+}
+
+void cadastraCachorro()
 {
     regAP2 reg;
     
     system("CLS");
     printf(" Codigo: ");
     scanf("%d", &reg.codigoCachorro);
-    while (existeCachorro(*AP2, reg.codigoCachorro))
+    while (existeCachorro(reg.codigoCachorro))
     {
         system("CLS");
 		printf("\n Codigo ja cadastrado. Digite novamente!");
@@ -72,16 +191,16 @@ void cadastraCachorro(FILE **AP2)
     printf("\n Nome: ");
     gets(reg.nomeCachorro);
     
-    fseek(*AP2, 0, SEEK_END);
-    fwrite(&reg, sizeof(regAP2), 1, *AP2);   
+    fseek(fpAP2, 0, SEEK_END);
+    fwrite(&reg, sizeof(regAP2), 1, fpAP2);   
 }
 
-int existeCachorro(FILE *AP2, int codigo)
+int existeCachorro(int codigo)
 {
     regAP2 reg;
 	
-	fseek(AP2, 0, SEEK_SET);
-	while (fread(&reg, sizeof(regAP2), 1, AP2))
+	fseek(fpAP2, 0, SEEK_SET);
+	while (fread(&reg, sizeof(regAP2), 1, fpAP2))
 	{
 		if (reg.codigoCachorro == codigo)
 		{
@@ -92,7 +211,7 @@ int existeCachorro(FILE *AP2, int codigo)
     return NO;
 }
 
-void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
+void cadastraVacina()
 {
     regAP1 reg;
     
@@ -102,14 +221,14 @@ void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
     //TODO: verificar no indice se o código existe!
     printf("\n Codigo do cachorro: ");
     scanf("%d", &reg.codigoCachorro);
-    while (!existeCachorro(*fpAP2, reg.codigoCachorro))
+    while (!existeCachorro(reg.codigoCachorro))
     {
         system("CLS");
 		printf("\n Codigo de cachorro inexistente. Digite novamente!");
 		getch(); 
         system("CLS");
         printf(" Codigo do cachorro: %d", reg.codigoControle);
-		printf("\n Codigo do cachorro: ");
+		printf("\n\n Codigo do cachorro: ");
         scanf("%d", &reg.codigoCachorro);
     }
     fflush(stdin);
@@ -120,34 +239,7 @@ void cadastraVacina(FILE **fpAP1, FILE **fpAP2, FILE **fpHash)
     printf("\n Responsavel pela vacina: ");
     gets(reg.respVacina);
     
-    fseek(*fpAP1, 0, SEEK_END);
-    fwrite(&reg, sizeof(regAP1), 1, *fpAP1);   
-}
-
-
-void inicializar() {
-	
-	int size;
-	char valorRoot[5];
-	
-	btfd = fileOpen(BtreeIdx);
-	
-    fseek(btfd,1,SEEK_END);
-    size = ftell(btfd) - 1;
-    printf("tam %d",size);
-    if(size){
-    	fread(&btroot,sizeof(short),1,btfd);
-	}
-	else{
-		btroot = NIL;
-		itoa(btroot,valorRoot,10);
-		fwrite(valorRoot,sizeof(short),1,btfd);
-	}
-	
-	printf("raiz     %d", btroot);
-	rewind(btfd);
-	fread(valorRoot,sizeof(short),1,btfd);
-	printf("     %d", atoi(valorRoot));
-	system("pause");
-	fclose(btfd);
+    fseek(fpAP1, 0, SEEK_END);
+    insereHash(funcaoHash(reg.codigoControle), reg.codigoControle, ftell(fpAP1));
+    fwrite(&reg, sizeof(regAP1), 1, fpAP1);   
 }

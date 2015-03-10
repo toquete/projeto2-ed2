@@ -16,3 +16,11 @@ FILE *fileOpen(char *fileName)
     
     return fp;
 }
+
+int isEmpty(FILE *file)
+{
+    fseek(file, 0, SEEK_END);
+    if (ftell(file) == 0)
+      return 1;
+    return 0;
+}
