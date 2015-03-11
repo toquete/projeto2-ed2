@@ -142,11 +142,13 @@ void inicializar()
 	if (isEmpty(fpHash))
 	  criaHash();
 	
-    fseek(fpBtree,1,SEEK_END);
-    size = ftell(fpBtree) - 1;
+    fseek(fpBtree,0,SEEK_END);
+    size = ftell(fpBtree);
     printf("tam %d",size);
+    rewind(fpBtree);
     if(size){
-    	fread(&btroot, sizeof(short), 1, fpBtree);
+    	fread(valorRoot, sizeof(short), 1, fpBtree);
+    	btroot = (short) atoi(valorRoot);
 	}
 	else{
 		btroot = NIL;
