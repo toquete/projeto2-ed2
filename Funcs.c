@@ -565,7 +565,8 @@ int procuraCachorro(int codigo)
 		if (reg.codigoCachorro == codigo)
 			return offset;
 		offset = ftell(fpAP2);
-	}   
+	}
+    return NIL;   
 }
 
 void cadastraVacina()
