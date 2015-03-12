@@ -51,6 +51,7 @@ typedef struct btree_page {
 short btroot; // RRN da pagina raiz da arvore B
 FILE *fpBtree;
 
+
 //*****************  Fim ARVORE B   *****************************
 
 //**********************      HASH      *************************
@@ -144,7 +145,6 @@ void inicializar()
 	
     fseek(fpBtree,0,SEEK_END);
     size = ftell(fpBtree);
-    printf("tam %d",size);
     rewind(fpBtree);
     if(size){
     	fread(valorRoot, sizeof(short), 1, fpBtree);
@@ -156,11 +156,6 @@ void inicializar()
 		fwrite(valorRoot, sizeof(short), 1, fpBtree);
 	}
 	
-	printf("raiz     %d", btroot);
-	rewind(fpBtree);
-	fread(valorRoot,sizeof(short),1,fpBtree);
-	printf("     %d", atoi(valorRoot));
-	system("pause");
 }
 
 void encerrar()
