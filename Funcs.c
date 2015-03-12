@@ -92,7 +92,7 @@ void criaHash()
 
 int funcaoHash(int codigo)
 {
-    return (int) codigo/MAXHASH;
+    return codigo%MAXHASH;
 }
 
 void insereHash(int hashAddress, int chave, int RRN)
@@ -114,7 +114,7 @@ void insereHash(int hashAddress, int chave, int RRN)
             if (hashAddress == (MAXHASH -1))
               hashAddress = 0;
             else
-              hashAddress++;    
+              hashAddress = funcaoHash(hashAddress + 1);    
             fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
             fread(&reg, sizeof(regHash), 1, fpHash);
         }
@@ -127,6 +127,47 @@ void insereHash(int hashAddress, int chave, int RRN)
     reg.registro[reg.cont - 1].pos   = RRN;
     fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
     fwrite(&reg, sizeof(regHash), 1, fpHash);
+}
+
+int buscaVacinaHash(int codigoControle)
+{
+    regHash regIdx;
+    regAP2  regArqP2;
+    int achou = NO, i, acessos = 1, hashAddress;
+    
+    hashAddress = funcaoHash(codigoControle);
+    fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
+    fread(&regIdx, sizeof(regHash), 1, fpHash);
+    
+    while (regIdx.cont != -1)
+    {
+        for (i = 0; i < regIdx.cont; i++)
+        {
+            if (regIdx.registro[i].chave == codigoControle)
+            {
+                achou = YES;
+                break;
+            }
+        }
+        if (!achou)
+        {
+            if (hashAddress == (MAXHASH - 1))
+              hashAddress = 0;
+            else
+              hashAddress = funcaoHash(hashAddress + 1);
+            acessos++;
+            fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);   
+            fread(&regIdx, sizeof(regHash), 1, fpHash);
+        }
+        else
+          break;
+    }
+    
+    if (achou)
+      printf("\n Chave %d encontrada, endereco %d, %d acesso(s)", codigoControle, hashAddress, acessos);
+    else
+      printf("\n Chave %d nao encontrada", codigoControle);
+    getch();
 }
 
 void inicializar() 
@@ -203,12 +244,24 @@ int existeCachorro(int codigo)
 	while (fread(&reg, sizeof(regAP2), 1, fpAP2))
 	{
 		if (reg.codigoCachorro == codigo)
-		{
 			return YES;
-			break;
-		}	
 	}
     return NO;
+}
+
+int procuraCachorro(int codigo)
+{
+    regAP2 reg;
+    int offset;
+	
+	fseek(fpAP2, 0, SEEK_SET);
+	offset = 0;
+	while (fread(&reg, sizeof(regAP2), 1, fpAP2))
+	{
+		if (reg.codigoCachorro == codigo)
+			return offset;
+		offset = ftell(fpAP2);
+	}   
 }
 
 void cadastraVacina()
