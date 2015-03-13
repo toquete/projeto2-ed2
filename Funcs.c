@@ -336,14 +336,12 @@ int insereBTree(int codControle, short RRN){
   new_key.codigoControle = codControle;
   new_key.RRN = RRN;
   
-  if (btroot == NIL)
-  {
+  if (btroot == NIL){
     // criar o no raiz se a arvore estiver vazia
     btroot = criaRaiz(new_key, NIL, NIL);
     result = 1;
   }
-  else
-  {
+  else{
     // senao, tentar inserir
     if(insere(btroot, new_key, &promoted_r_child, &promoted_key, &chave_dup)){
       // se essa primeira chamada retornar registro prmovido, atualizar root
@@ -400,7 +398,7 @@ void criaHash()
 
 int funcaoHash(int codigo)
 {
-    return (int) codigo/MAXHASH;
+    return codigo%MAXHASH;
 }
 
 void insereHash(int hashAddress, int chave, int RRN)
@@ -422,7 +420,7 @@ void insereHash(int hashAddress, int chave, int RRN)
             if (hashAddress == (MAXHASH -1))
               hashAddress = 0;
             else
-              hashAddress++;    
+              hashAddress = funcaoHash(hashAddress + 1);    
             fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
             fread(&reg, sizeof(regHash), 1, fpHash);
         }
@@ -435,6 +433,51 @@ void insereHash(int hashAddress, int chave, int RRN)
     reg.registro[reg.cont - 1].pos   = RRN;
     fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
     fwrite(&reg, sizeof(regHash), 1, fpHash);
+}
+
+int buscaVacinaHash(int codigoControle, int verifica)
+{
+    regHash regIdx;
+    regAP2  regArqP2;
+    int achou = NO, i, acessos = 1, hashAddress;
+    
+    hashAddress = funcaoHash(codigoControle);
+    fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
+    fread(&regIdx, sizeof(regHash), 1, fpHash);
+    
+    while (regIdx.cont != 0)
+    {
+        for (i = 0; i < regIdx.cont; i++)
+        {
+            if (regIdx.registro[i].chave == codigoControle)
+            {
+                achou = YES;
+                break;
+            }
+        }
+        if (!achou)
+        {
+            if (hashAddress == (MAXHASH - 1))
+              hashAddress = 0;
+            else
+              hashAddress = funcaoHash(hashAddress + 1);
+            acessos++;
+            fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);   
+            fread(&regIdx, sizeof(regHash), 1, fpHash);
+        }
+        else
+          break;
+    }
+    
+    if (!verifica)
+    {
+        if (achou)
+          printf("\n Chave %d encontrada, endereco %d, %d acesso(s)", codigoControle, hashAddress, acessos);
+        else
+          printf("\n Chave %d nao encontrada", codigoControle);    
+        getch();
+    }
+    return achou;
 }
 
 void inicializar() 
@@ -507,12 +550,25 @@ int existeCachorro(int codigo)
 	while (fread(&reg, sizeof(regAP2), 1, fpAP2))
 	{
 		if (reg.codigoCachorro == codigo)
-		{
 			return YES;
-			break;
-		}	
 	}
     return NO;
+}
+
+int procuraCachorro(int codigo)
+{
+    regAP2 reg;
+    int offset;
+	
+	fseek(fpAP2, 0, SEEK_SET);
+	offset = 0;
+	while (fread(&reg, sizeof(regAP2), 1, fpAP2))
+	{
+		if (reg.codigoCachorro == codigo)
+			return offset;
+		offset = ftell(fpAP2);
+	}
+    return NIL;   
 }
 
 void cadastraVacina()
@@ -522,7 +578,14 @@ void cadastraVacina()
     system("CLS");
     printf(" Codigo de controle: ");
     scanf("%d", &reg.codigoControle);
-    //TODO: verificar no indice se o código existe!
+    while (buscaVacinaHash(reg.codigoControle, YES))
+    {
+        system("CLS");
+        printf("Codigo ja cadastrado. Verifique!");
+        getch();
+        printf(" Codigo de controle: ");
+        scanf("%d", &reg.codigoControle);
+    }
     printf("\n Codigo do cachorro: ");
     scanf("%d", &reg.codigoCachorro);
     while (!existeCachorro(reg.codigoCachorro))
@@ -544,6 +607,86 @@ void cadastraVacina()
     gets(reg.respVacina);
     
     fseek(fpAP1, 0, SEEK_END);
+    insereBTree(reg.codigoControle, ftell(fpAP1));
     insereHash(funcaoHash(reg.codigoControle), reg.codigoControle, ftell(fpAP1));
     fwrite(&reg, sizeof(regAP1), 1, fpAP1);   
 }
+
+void percursoEmOrdem(short btroot){
+    
+    regBTPage auxPage;
+    regAP1 vacinaAux;
+    regAP2 cachorroAux;
+    int i, j;
+    
+    fseek(fpBtree, btroot*PAGESIZE,SEEK_SET);
+    fread(&auxPage, PAGESIZE, 1, fpBtree);
+    
+    
+    for (i = 0; i < MAXKEYS; i++)
+    {
+        percursoEmOrdem(auxPage.child[i]);
+        
+        if(auxPage.child[i] == NIL)
+        {
+            for (j = 0; j < auxPage.keycount; j++)
+            {
+                //fseek(fpBTree, aux.child[j]*PAGESIZE, SEEK_SET);
+                //fread(&auxPage, PAGESIZE, 1, fpBTree);
+                fseek(fpAP1, auxPage.key[j].RRN, SEEK_SET);
+                fread(&vacinaAux, sizeof(regAP1), 1, fpAP1);
+                fseek(fpAP2, procuraCachorro(vacinaAux.codigoCachorro), SEEK_SET);
+                fread(&cachorroAux, sizeof(regAP2), 1, fpAP2);    
+            }
+            
+            
+        }
+        else{
+            
+        }      
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

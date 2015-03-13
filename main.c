@@ -67,18 +67,20 @@ void validaOpcao(int opcao)
         case INSERCAO:
             cabecalho(INSERCAO);
             scanf("%d", &op);
-            /*while ((op < 1) || (op > 2))
+            while ((op < 1) || (op > 2))
             {
                 system("CLS");
                 printf("Opcao invalida! Digite novamente!");
                 getch();
                 cabecalho(INSERCAO);
-            }*/
+                scanf("%d", &op);
+            }
             if (op == 1)
               cadastraCachorro();
             else
               cadastraVacina();
-            break;                
+            break;
+                         
     }   
 }
 
