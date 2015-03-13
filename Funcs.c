@@ -574,6 +574,7 @@ int procuraCachorro(int codigo)
 void cadastraVacina()
 {
     regAP1 reg;
+    int rrn;
     
     system("CLS");
     printf(" Codigo de controle: ");
@@ -607,11 +608,12 @@ void cadastraVacina()
     gets(reg.respVacina);
     
     fseek(fpAP1, 0, SEEK_END);
-    insereBTree(reg.codigoControle, ftell(fpAP1));
+    rrn = (ftell(fpAP1)/sizeof(regAP1));
+    insereBTree(reg.codigoControle, rrn);
     insereHash(funcaoHash(reg.codigoControle), reg.codigoControle, ftell(fpAP1));
     fwrite(&reg, sizeof(regAP1), 1, fpAP1);   
 }
-
+/*
 void percursoEmOrdem(short btroot){
     
     regBTPage auxPage;
@@ -647,7 +649,7 @@ void percursoEmOrdem(short btroot){
     }
     
 }
-
+*/
 
 
 
