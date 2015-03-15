@@ -84,7 +84,7 @@ Descricao: Atualiza a raiz da arvore no cabecalho do arquivo sempre que necessar
 void escreveRaiz(short root){
 	
 	fseek(fpBtree, 0, SEEK_SET);
-	fwrite(&root,sizeof(short),1,fpBtree);
+	fwrite(&root, sizeof(short), 1,fpBtree);
 }
 
 
@@ -99,7 +99,7 @@ short novaPage(){
 	long endereco;
 	
 	fseek(fpBtree, 0, SEEK_END);
-	endereco = ftell(fpBtree) - sizeof(short); //o numero de bytes do arquivo som o cabecalho
+	endereco = ftell(fpBtree) - 2L; //o numero de bytes do arquivo som o cabecalho
 	
 	return ((short) endereco / PAGESIZE); 
 }
@@ -113,7 +113,7 @@ Descricao: posiciona o ponteiro na pagina e faz a leitura da mesma
 int pegaPage(short rrn, regBTPage *page){
 	long endereco;
 	
-	endereco = (long) rrn * (long)PAGESIZE + sizeof(short);
+	endereco = (long) rrn * (long)PAGESIZE + 2L;
 	fseek(fpBtree, endereco, 0); //posiciona o ponteiro no byte do registro
 	
 	
@@ -131,7 +131,7 @@ int escrevePage(short rrn, regBTPage *page){
 	
 	long endereco;
 	
-	endereco = (long)rrn * (long)PAGESIZE + sizeof(short);
+	endereco = (long)rrn * (long) PAGESIZE + 2L;
 	fseek(fpBtree, endereco, 0); //posiciona o ponteiro no byte do registro
 	
 	
@@ -194,18 +194,17 @@ int buscaNo(int codControle, regBTPage *page, short *pos){
 	
 	int i;
 	
-	for(i = 0; i < page->keycount; i++){
-		*pos = i;
-		
-		if(codControle > page->key[i].codigoControle)
-			break;
-	}
+	for (i = 0; i < page->keycount && (codControle > page->key[i].codigoControle); i++);
+  	
+	*pos = i;
 	
-	if(*pos < page->keycount && (codControle == page->key[*pos].codigoControle))
-		return (YES);
-	
-	else
-		return (NO);
+	if (*pos < page->keycount && (codControle == page->key[*pos].codigoControle))
+    	return(YES);
+  	
+  
+  	else
+    	return(NO); // retornar negativo
+  	
 }
 
 
@@ -219,11 +218,8 @@ void inserePage(regAP1Page key, short r_child, regBTPage *page){
 	
 	int i;
 	
-	for(i = page->keycount; key.codigoControle < page->key[i-1].codigoControle; i--){
-		
-		if (i < 0)
-			break;
-		
+	for(i = page-> keycount; key.codigoControle < page->key[i-1].codigoControle && i > 0; i--){
+
 		page->key[i] = page->key[i-1];
 		page->child[i+1] = page->child[i];
 	}
@@ -294,9 +290,9 @@ void split(regAP1Page key, short r_child, regBTPage *p_oldpage, regAP1Page *prom
 int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_key, int *duplicatedKey)
 {
   regBTPage  page, newpage;  
-  int     promoted; // boolean values
-  short   pos,p_b_rrn;  // rrn promoted from below
-  regAP1Page p_b_key;  // key promoted from below
+  int     promoted; 
+  short   pos,p_b_rrn; 
+  regAP1Page p_b_key;  
   
   if (rrn == NIL)
   {
