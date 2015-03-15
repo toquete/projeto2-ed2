@@ -25,8 +25,6 @@ typedef struct {
 	short RRN;	
 } regAP1Page;
 
-
-
 typedef struct {
 	int codigoCachorro;
     char raca[30];
@@ -37,8 +35,7 @@ FILE *fpAP1;
 FILE *fpAP2;
 /*******************************************************/
 
-//****************   ARVORE B   ***********************
-//**** constantes
+/****************   ARVORE B   *************************/
 #define BtreeIdx "btIdx.bin"
 
 #define MAXKEYS   4               // numero maximo de chaves em uma pagina
@@ -57,6 +54,26 @@ typedef struct {
 
 short btroot; // RRN da pagina raiz da arvore B
 FILE *fpBtree;
+/*******************************************************/
+
+//******************      HASH      ********************/
+#define HashIdx "hashIdx.bin"
+
+#define CESTOS 2                  //quantidade de registros por cesto (buckets)
+#define MAXHASH 11                //quantidade máxima de cestos no índice
+ 
+typedef struct {
+    int chave;
+    int pos;            
+} cellHash;
+
+typedef struct {
+    int cont;
+    cellHash registro[CESTOS];   
+} regHash;
+
+FILE *fpHash;
+/*******************************************************/
 
 /*************************************************************************************
 Funcao: escreveRaiz
@@ -357,27 +374,6 @@ int insereBTree(int codControle, short RRN){
   return result;	
 }
 
-//*****************  Fim ARVORE B   *****************************
-
-//**********************      HASH      *************************
-#define HashIdx "hashIdx.bin"
-
-#define CESTOS 2                  //quantidade de cestos (buckets)
-#define MAXHASH 11                //quantidade máxima de celulas hash no índice
- 
-typedef struct {
-    int chave;
-    int pos;            
-} cellHash;
-
-typedef struct {
-    int cont;
-    cellHash registro[CESTOS];   
-} regHash;
-
-FILE *fpHash;
-//***************************************************************
-
 void criaHash()
 {
     int i, j;
@@ -401,7 +397,7 @@ int funcaoHash(int codigo)
     return codigo%MAXHASH;
 }
 
-void insereHash(int hashAddress, int chave, int RRN)
+void insereHash(int hashAddress, int chave, int offset)
 {
     int tentativa = 0;
     regHash reg;
@@ -409,6 +405,7 @@ void insereHash(int hashAddress, int chave, int RRN)
     fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
     fread(&reg, sizeof(regHash), 1, fpHash);
     
+    printf("\n HASH");
     printf("\n Endereco: %d", hashAddress);
     if (reg.cont == 2)
     {
@@ -430,9 +427,34 @@ void insereHash(int hashAddress, int chave, int RRN)
     
     reg.cont                         = reg.cont + 1;
     reg.registro[reg.cont - 1].chave = chave;
-    reg.registro[reg.cont - 1].pos   = RRN;
+    reg.registro[reg.cont - 1].pos   = offset;
     fseek(fpHash, hashAddress*sizeof(regHash), SEEK_SET);
     fwrite(&reg, sizeof(regHash), 1, fpHash);
+}
+
+void imprimeVacina(int codVacina, int posVacina)
+{
+    regAP1 vacina;
+    regAP2 cachorro;
+    
+    fseek(fpAP1, posVacina, SEEK_SET);
+    fread(&vacina, sizeof(regAP1), 1, fpAP1);
+    fseek(fpAP2, procuraCachorro(vacina.codigoCachorro), SEEK_SET);
+    fread(&cachorro, sizeof(regAP2), 1, fpAP2);
+    
+    printf(" Codigo da Vacina: %d", vacina.codigoControle);
+    printf("\n Codigo do Cachorro: %d", vacina.codigoCachorro);
+    printf("\n  Raca do Cachorro: ");
+    puts(cachorro.raca);
+    printf("\n  Nome do Cachorro: ");
+    puts(cachorro.nomeCachorro);
+    printf("\n Nome da Vacina: ");
+    puts(vacina.vacina);
+    printf("\n Data da Vacina: ");
+    puts(vacina.dataVacina);
+    printf("\n Responsavel pela Vacina: ");
+    puts(vacina.respVacina);
+    printf("\n\n");    
 }
 
 int buscaVacinaHash(int codigoControle, int verifica)
@@ -452,6 +474,8 @@ int buscaVacinaHash(int codigoControle, int verifica)
             if (regIdx.registro[i].chave == codigoControle)
             {
                 achou = YES;
+                if (verifica)
+                  imprimeVacina(regIdx.registro[i].chave, regIdx.registro[i].pos);                
                 break;
             }
         }
@@ -469,7 +493,7 @@ int buscaVacinaHash(int codigoControle, int verifica)
           break;
     }
     
-    if (!verifica)
+    if (verifica)
     {
         if (achou)
           printf("\n Chave %d encontrada, endereco %d, %d acesso(s)", codigoControle, hashAddress, acessos);
@@ -505,7 +529,6 @@ void inicializar()
 		itoa(btroot, valorRoot, 10);
 		fwrite(valorRoot, sizeof(short), 1, fpBtree);
 	}
-	
 }
 
 void encerrar()
@@ -579,7 +602,7 @@ void cadastraVacina()
     system("CLS");
     printf(" Codigo de controle: ");
     scanf("%d", &reg.codigoControle);
-    while (buscaVacinaHash(reg.codigoControle, YES))
+    while (buscaVacinaHash(reg.codigoControle, NO))
     {
         system("CLS");
         printf("Codigo ja cadastrado. Verifique!");

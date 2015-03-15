@@ -31,6 +31,7 @@ int cabecalho(int tipomenu)
             printf("1. Inserir Nova Vacina\n");
             printf("2. Listar Todas as Vacinas\n");
             printf("3. Pesquisar uma Vacina\n");
+            printf("0. Sair");
             printf("\n\nEscolha a opcao: ");
             break;
         case INSERCAO:
@@ -60,7 +61,7 @@ int cabecalho(int tipomenu)
 
 void validaOpcao(int opcao)
 { 
-    int op;
+    int op, selecao;
     
     switch(opcao)
     {
@@ -80,7 +81,30 @@ void validaOpcao(int opcao)
             else
               cadastraVacina();
             break;
-                         
+        case PESQUISA:
+            cabecalho(PESQUISA);
+            scanf("%d", &op);
+            while ((op < 1) || (op > 2))
+            {
+                system("CLS");
+                printf("Opcao invalida! Digite novamente!");
+                getch();
+                cabecalho(PESQUISA);
+                scanf("%d", &op);
+            }
+            while (YES)
+            {
+                system("CLS");
+                printf(" Digite um codigo de controle de uma vacina (-1 para sair): ");
+                scanf("%d", &selecao);
+                if (selecao == -1)
+                  break;
+                if (op == 1)
+                  getch();
+                else
+                  buscaVacinaHash(selecao, YES);
+            }
+            break;      
     }   
 }
 
