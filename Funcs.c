@@ -203,7 +203,7 @@ int buscaNo(int codControle, regBTPage *page, short *pos){
   	
   
   	else
-    	return(NO); // retornar negativo
+    	return(NO); 
   	
 }
 
@@ -453,6 +453,7 @@ void imprimeVacina(int codVacina, int posVacina)
     printf("\n\n");    
 }
 
+
 int buscaVacinaHash(int codigoControle, int verifica)
 {
     regHash regIdx;
@@ -632,82 +633,34 @@ void cadastraVacina()
     insereHash(funcaoHash(reg.codigoControle), reg.codigoControle, ftell(fpAP1));
     fwrite(&reg, sizeof(regAP1), 1, fpAP1);   
 }
-/*
-void percursoEmOrdem(short btroot){
+
+
+void percursoEmOrdem(short rrn){
     
     regBTPage auxPage;
-    regAP1 vacinaAux;
-    regAP2 cachorroAux;
-    int i, j;
     
-    fseek(fpBtree, btroot*PAGESIZE,SEEK_SET);
-    fread(&auxPage, PAGESIZE, 1, fpBtree);
+	int i, offset;
     
+    if (rrn == NIL)//caso base da recursao
+    	return;
     
-    for (i = 0; i < MAXKEYS; i++)
+    pegaPage(rrn, &auxPage);
+ 	printf("num de ch na raiz %d, prox filho %d       %d",auxPage.keycount,auxPage.child[1],auxPage.child[0]);   
+    for (i = 0; i < auxPage.keycount; i++)
     {
-        percursoEmOrdem(auxPage.child[i]);
+    	if(auxPage.child[i] != NIL)
+        	percursoEmOrdem(auxPage.child[i]);
         
-        if(auxPage.child[i] == NIL)
-        {
-            for (j = 0; j < auxPage.keycount; j++)
-            {
-                //fseek(fpBTree, aux.child[j]*PAGESIZE, SEEK_SET);
-                //fread(&auxPage, PAGESIZE, 1, fpBTree);
-                fseek(fpAP1, auxPage.key[j].RRN, SEEK_SET);
-                fread(&vacinaAux, sizeof(regAP1), 1, fpAP1);
-                fseek(fpAP2, procuraCachorro(vacinaAux.codigoCachorro), SEEK_SET);
-                fread(&cachorroAux, sizeof(regAP2), 1, fpAP2);    
-            }
-            
-            
-        }
-        else{
-            
-        }      
+        offset = auxPage.key[i].RRN * sizeof(regAP1);  
+        imprimeVacina(auxPage.key[i].codigoControle, offset);
     }
     
+    if(auxPage.child[i] != NIL)
+    	percursoEmOrdem(auxPage.child[i]);
+    
 }
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
+void listaVacinas(){
+	percursoEmOrdem(btroot);
+}
 

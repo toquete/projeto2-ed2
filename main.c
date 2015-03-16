@@ -104,7 +104,12 @@ void validaOpcao(int opcao)
                 else
                   buscaVacinaHash(selecao, YES);
             }
-            break;      
+            break;
+		case LISTA:
+			cabecalho(LISTA);
+			listaVacinas();
+			getch();
+			break;      
     }   
 }
 
