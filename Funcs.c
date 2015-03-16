@@ -338,8 +338,6 @@ int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_ke
   }
 }
 
-
-
 int insereBTree(int codControle, short RRN){
 
   regAP1Page new_key, promoted_key;
@@ -365,11 +363,21 @@ int insereBTree(int codControle, short RRN){
   }
   
   if (result)
-    printf("Chave %d inserida com sucesso.\n", new_key.codigoControle);    
+  {
+      printf("\n ARVORE B");
+      printf("\n Chave %d inserida com sucesso.\n", new_key.codigoControle);
+  }
+    
   
   return result;	
 }
 
+/***********************************************************************************************************
+Funcao: criaHash
+Parametro: -
+Retorno: -
+Descricao: inicia o arquivo de índice hash com registros nulos
+************************************************************************************************************/
 void criaHash()
 {
     int i, j;
@@ -388,11 +396,23 @@ void criaHash()
     }    
 }
 
+/***********************************************************************************************************
+Funcao: funcaoHash
+Parametro: Código de controle da vacina a ser inserida
+Retorno: Endereço do índice onde o código + byte offset será guardado
+Descricao: Calcula o endereço hash de acordo com a chave passada por parâmetro
+************************************************************************************************************/
 int funcaoHash(int codigo)
 {
     return codigo%MAXHASH;
 }
 
+/***********************************************************************************************************
+Funcao: insereHash
+Parametros: Endereço do índice hash, chave a ser inserida e offset do registro no arquivo principal
+Retorno: -
+Descricao: Realiza a inserção da chave + byte offset do arquivo principal no índice hash
+************************************************************************************************************/
 void insereHash(int hashAddress, int chave, int offset)
 {
     int tentativa = 0;
@@ -428,6 +448,12 @@ void insereHash(int hashAddress, int chave, int offset)
     fwrite(&reg, sizeof(regHash), 1, fpHash);
 }
 
+/***********************************************************************************************************
+Funcao: imprimeVacina
+Parametro: Código de vacina e posição do registro no arquivo principal
+Retorno: -
+Descricao: imprime os dados de vacina e do cachorro relacionado à ela
+************************************************************************************************************/
 void imprimeVacina(int codVacina, int posVacina)
 {
     regAP1 vacina;
@@ -438,11 +464,11 @@ void imprimeVacina(int codVacina, int posVacina)
     fseek(fpAP2, procuraCachorro(vacina.codigoCachorro), SEEK_SET);
     fread(&cachorro, sizeof(regAP2), 1, fpAP2);
     
-    printf(" Codigo da Vacina: %d", vacina.codigoControle);
-    printf("\n Codigo do Cachorro: %d", vacina.codigoCachorro);
-    printf("\n  Raca do Cachorro: ");
+    printf("\n Codigo da Vacina: %d\n", vacina.codigoControle);
+    printf("\n Codigo do Cachorro: %d\n", vacina.codigoCachorro);
+    printf("\n    Raca do Cachorro: ");
     puts(cachorro.raca);
-    printf("\n  Nome do Cachorro: ");
+    printf("\n    Nome do Cachorro: ");
     puts(cachorro.nomeCachorro);
     printf("\n Nome da Vacina: ");
     puts(vacina.vacina);
@@ -450,10 +476,15 @@ void imprimeVacina(int codVacina, int posVacina)
     puts(vacina.dataVacina);
     printf("\n Responsavel pela Vacina: ");
     puts(vacina.respVacina);
-    printf("\n\n");    
+    printf("\n");    
 }
 
-
+/***********************************************************************************************************
+Funcao: buscaVacinaHash
+Parametro: Código da vacina a ser buscada e booleano indicando se é necessário imprimir as informações da busca
+Retorno: YES - se chave encontrada; NO - se chave inexistente
+Descricao: realiza a busca de um determinado registro no índice hash
+************************************************************************************************************/
 int buscaVacinaHash(int codigoControle, int verifica)
 {
     regHash regIdx;
@@ -501,6 +532,12 @@ int buscaVacinaHash(int codigoControle, int verifica)
     return achou;
 }
 
+/***********************************************************************************************************
+Funcao: inicializar
+Parametro: -
+Retorno: -
+Descricao: Abre arquivos e inicia índices se necessário
+************************************************************************************************************/
 void inicializar() 
 {
 	int size;
@@ -528,6 +565,12 @@ void inicializar()
 	}
 }
 
+/***********************************************************************************************************
+Funcao: encerrar
+Parametro: -
+Retorno: -
+Descricao: Fecha arquivos.
+************************************************************************************************************/
 void encerrar()
 {
     fclose(fpAP1);
@@ -536,6 +579,12 @@ void encerrar()
 	fclose(fpBtree);
 }
 
+/***********************************************************************************************************
+Funcao: cadastraCachorro
+Parametro: -
+Retorno: -
+Descricao: Realiza o cadastro de cachorros.
+************************************************************************************************************/
 void cadastraCachorro()
 {
     regAP2 reg;
@@ -543,7 +592,7 @@ void cadastraCachorro()
     system("CLS");
     printf(" Codigo: ");
     scanf("%d", &reg.codigoCachorro);
-    while (existeCachorro(reg.codigoCachorro))
+    while (procuraCachorro(reg.codigoCachorro) != -1)
     {
         system("CLS");
 		printf("\n Codigo ja cadastrado. Digite novamente!");
@@ -562,19 +611,12 @@ void cadastraCachorro()
     fwrite(&reg, sizeof(regAP2), 1, fpAP2);   
 }
 
-int existeCachorro(int codigo)
-{
-    regAP2 reg;
-	
-	fseek(fpAP2, 0, SEEK_SET);
-	while (fread(&reg, sizeof(regAP2), 1, fpAP2))
-	{
-		if (reg.codigoCachorro == codigo)
-			return YES;
-	}
-    return NO;
-}
-
+/***********************************************************************************************************
+Funcao: procuraCachorro
+Parametro: Código do cachorro
+Retorno: Se existe, byte offset da sua posição no arquivo principal 2. Se não, retorna NIL
+Descricao: Procura um determinado cachorro no arquivo principal 2.
+************************************************************************************************************/
 int procuraCachorro(int codigo)
 {
     regAP2 reg;
@@ -591,6 +633,12 @@ int procuraCachorro(int codigo)
     return NIL;   
 }
 
+/***********************************************************************************************************
+Funcao: cadastraVacina
+Parametro: -
+Retorno: -
+Descricao: Realiza o cadastro de vacina, bem como a inserção das chaves nos índices.
+************************************************************************************************************/
 void cadastraVacina()
 {
     regAP1 reg;
@@ -609,7 +657,7 @@ void cadastraVacina()
     }
     printf("\n Codigo do cachorro: ");
     scanf("%d", &reg.codigoCachorro);
-    while (!existeCachorro(reg.codigoCachorro))
+    while (procuraCachorro(reg.codigoCachorro) == -1)
     {
         system("CLS");
 		printf("\n Codigo de cachorro inexistente. Digite novamente!");
@@ -634,7 +682,12 @@ void cadastraVacina()
     fwrite(&reg, sizeof(regAP1), 1, fpAP1);   
 }
 
-
+/***********************************************************************************************************
+Funcao: percursoEmOrdem
+Parametro: RRN do registro no índice
+Retorno: -
+Descricao: Realiza o percurso em ordem para impressão dos registro ordenados.
+************************************************************************************************************/
 void percursoEmOrdem(short rrn){
     
     regBTPage auxPage;
@@ -659,7 +712,13 @@ void percursoEmOrdem(short rrn){
     	percursoEmOrdem(auxPage.child[i]);
     
 }
-	
+
+/***********************************************************************************************************
+Funcao: listaVacinas
+Parametro: -
+Retorno: -
+Descricao: Lista vacinas, chamando a função percursoEmOrdem
+************************************************************************************************************/	
 void listaVacinas(){
 	percursoEmOrdem(btroot);
 }
