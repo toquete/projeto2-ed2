@@ -7,14 +7,8 @@
 
 #define MENUPRINCIPAL 0
 #define INSERCAO      1
-#define ARVOREB       1
-#define CACHORRO      1
-#define HASH          2
 #define LISTA         2
-#define VACINA        2
 #define PESQUISA      3
-#define TRUE          1
-#define FALSE         0
 
 int cabecalho(int tipomenu)
 {
@@ -100,9 +94,17 @@ void validaOpcao(int opcao)
                 if (selecao == -1)
                   break;
                 if (op == 1)
+                {
+                  buscaArvore(selecao);
                   getch();
+                  break;  
+                }
                 else
+                {
                   buscaVacinaHash(selecao, YES);
+                  getch();
+                  break;  
+                }
             }
             break;
 		case LISTA:

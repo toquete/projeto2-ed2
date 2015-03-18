@@ -307,7 +307,7 @@ int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_ke
   *duplicatedKey = buscaNo( key.codigoControle, &page, &pos);
   if (*duplicatedKey)
   {
-    printf("Chave %d Duplicada\n", key.codigoControle);
+    printf(" Chave %d Duplicada\n", key.codigoControle);
     return(0);
   }
   // chamada recursiva de insert, para tentar inserir nas paginas filhas
@@ -327,9 +327,9 @@ int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_ke
   else
   {
     // senao, realizar divisao da pagina
-    printf("Divisao de No.\n");
+    printf(" Divisao de No.\n");
     split(p_b_key, p_b_rrn, &page, promo_key, promo_r_child, &newpage);
-    printf("Chave %d Promovida.\n", promo_key->codigoControle);
+    printf(" Chave %d Promovida.\n", promo_key->codigoControle);
     
     escrevePage(rrn, &page);
     escrevePage(*promo_r_child, &newpage);
@@ -347,6 +347,7 @@ int insereBTree(int codControle, short RRN){
   new_key.codigoControle = codControle;
   new_key.RRN = RRN;
   
+  printf("\n ARVORE B");
   if (btroot == NIL){
     // criar o no raiz se a arvore estiver vazia
     btroot = criaRaiz(new_key, NIL, NIL);
@@ -363,11 +364,7 @@ int insereBTree(int codControle, short RRN){
   }
   
   if (result)
-  {
-      printf("\n ARVORE B");
       printf("\n Chave %d inserida com sucesso.\n", new_key.codigoControle);
-  }
-    
   
   return result;	
 }
@@ -721,5 +718,41 @@ Descricao: Lista vacinas, chamando a função percursoEmOrdem
 ************************************************************************************************************/	
 void listaVacinas(){
 	percursoEmOrdem(btroot);
+}
+
+int buscaBTree(int rrn, int codigo)
+{
+    regBTPage auxPage;
+    
+	int i, offset;
+    
+    if (rrn == NIL)//caso base da recursao
+    	return NO;
+    
+    pegaPage(rrn, &auxPage);
+    for (i = 0; i <= auxPage.keycount; i++)
+    {
+        offset = auxPage.key[i].RRN * sizeof(regAP1);  
+    	if(codigo == auxPage.key[i].codigoControle)
+    	{
+    	  imprimeVacina(codigo, offset);
+          return YES;  
+        }
+    	else if(codigo < auxPage.key[i].codigoControle)
+    	  buscaBTree(auxPage.child[i], codigo);
+    	else
+    	  buscaBTree(auxPage.child[i + 1], codigo);
+    }
+    
+    return NO;
+}
+
+void buscaArvore(int codigo)
+{
+    if (!buscaBTree(btroot, codigo))
+    {
+       system("CLS");
+       printf(" Chave inexistente!");
+    }
 }
 

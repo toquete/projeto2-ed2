@@ -45,6 +45,8 @@ void insereHash(int hashAddress, int chave, int offset);
 int buscaVacinaHash(int codigoControle, int verifica);
 int insereBTree(int codControle, short RRN);
 void imprimeVacina(int codVacina, int posVacina);
+int buscaBTree(int rrn, int codigo);
+void buscaArvore(int codigo);
 
 
 
