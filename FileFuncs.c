@@ -2,7 +2,12 @@
 #include <stdlib.h>
 #include <conio.h>
 
-
+/***********************************************************************************************************
+Funcao: fileOpen
+Parametro: Nome do arquivo a ser aberto
+Retorno: Ponteiro do arquivo aberto
+Descricao: Abre o arquivo passado por parâmetro.
+************************************************************************************************************/
 FILE *fileOpen(char *fileName)
 {
     FILE *fp;
@@ -17,6 +22,12 @@ FILE *fileOpen(char *fileName)
     return fp;
 }
 
+/***********************************************************************************************************
+Funcao: isEmpty
+Parametros: ponteiro do arquivo a ser verificado
+Retorno: YES - arquivo vazio; NO - arquivo não vazio
+Descricao: Verifica se um determinado arquivo está vazio.
+************************************************************************************************************/
 int isEmpty(FILE *file)
 {
     fseek(file, 0, SEEK_END);
