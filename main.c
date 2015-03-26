@@ -1,3 +1,12 @@
+/***********************************************************************************************************************
+							     PROJETO II - ESTRUTURA DE DADOS II
+  
+  NOME: CESAR YUGO OKADA			   RA: 131152807
+  NOME: GUILHERME ROGERIO TOQUETE      RA: 131150243
+  
+  Projeto desenvolvido na IDE Orwell DevC++ e compilado com o gcc
+***********************************************************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
@@ -9,6 +18,14 @@
 #define INSERCAO      1
 #define LISTA         2
 #define PESQUISA      3
+
+
+/*************************************************************************************
+Funcao: cabecalho
+Parametro: o tipo do menu a ser mostrado
+Retorno: 
+Descricao: mostra o cabecalho dependendo de cada operacao
+************************************************************************************/
 
 int cabecalho(int tipomenu)
 {

@@ -33,7 +33,7 @@ typedef struct {
 
 FILE *fpAP1;
 FILE *fpAP2;
-/*******************************************************/
+/**************************************************************************************************************************/
 
 /****************   ARVORE B   *************************/
 #define BtreeIdx "btIdx.bin"
@@ -79,12 +79,13 @@ FILE *fpHash;
 Funcao: escreveRaiz
 Parametro: copia do RRN da raiz
 Retorno: -
-Descricao: Atualiza a raiz da arvore no cabecalho do arquivo sempre que necessario.
+Descricao: Grava a raiz no cabecalho do arquivo
 ************************************************************************************/
 void escreveRaiz(short root){
 	
-	fseek(fpBtree, 0, SEEK_SET);
+	fseek(fpBtree, 0, 0);
 	fwrite(&root, sizeof(short), 1,fpBtree);
+	fseek(fpBtree, 0, 0);
 }
 
 
@@ -243,14 +244,14 @@ void split(regAP1Page key, short r_child, regBTPage *p_oldpage, regAP1Page *prom
 	regAP1Page workkeys[MAXKEYS+1];
 	short workchil[MAXKEYS+2];
 	  
-	  // obter as chaves e os ponteiros da pagina atual
+	  // carreganso as chaves e os ponteiros da pagina atual
 	  for (j = 0; j < MAXKEYS; j++){
 	    workkeys[j] = p_oldpage->key[j];
 	    workchil[j] = p_oldpage->child[j];
 	  }  
 	  workchil[j] = p_oldpage->child[j];
 	  
-	  // ordenar e acrescentar a nova pagina (o vetor tem MAXKEYS+1 chaves)
+	  // ordenar e acrescentar a nova pagina
 	  for (j = MAXKEYS; key.codigoControle < workkeys[j-1].codigoControle && j > 0; j--){
 	    workkeys[j] = workkeys[j-1];
 	    workchil[j+1] = workchil[j];
@@ -258,11 +259,11 @@ void split(regAP1Page key, short r_child, regBTPage *p_oldpage, regAP1Page *prom
 	  workkeys[j] = key;
 	  workchil[j+1] = r_child;
 	  
-	  // obter RRN de nova pagina e inicializada
+
 	  *promo_r_child = novaPage(); 
 	  iniciaPage(p_newpage);
 	
-	  // separar as pagina antiga, adicionando chaves a pagina nova  
+	    
 	  for (j = 0; j < MINKEYS; j++){
 	    p_oldpage->key[j] = workkeys[j];
 	    p_oldpage->child[j] = workchil[j];
@@ -280,12 +281,20 @@ void split(regAP1Page key, short r_child, regBTPage *p_oldpage, regAP1Page *prom
 	  
 	  p_newpage->child[MINKEYS] = workchil[j+1+MINKEYS];
 	  
-	  p_newpage->keycount = MAXKEYS - MINKEYS; // atualizar contador da pagina nova
+	  p_newpage->keycount = MAXKEYS - MINKEYS; 
 	  
 	  p_oldpage->keycount = MINKEYS;
 	  
 	  *promo_key = workkeys[MINKEYS];
 }
+/**************************************************************************************************************************
+Funcao: insere
+Parametro: rrn da pagina filha, o registro da chave, controlador para caso houver promocao de no;
+		   e controlador caso ocorra duplicacao de no.
+Retorno: 1 se inseriu com sucesso, ou 0 senao
+Descricao: a funcao eh recursiva, indo sempre para a pagina em que a chave deveria ser inserida, se houver espaço nela,
+			a chave eh inserida, senao, eh criada uma nova pagina
+***************************************************************************************************************************/
 
 int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_key, int *duplicatedKey)
 {
@@ -310,7 +319,7 @@ int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_ke
     printf(" Chave %d Duplicada\n", key.codigoControle);
     return(0);
   }
-  // chamada recursiva de insert, para tentar inserir nas paginas filhas
+  // tentativa de inserção nos niveis mais baixos
   promoted = insere(page.child[pos], key, &p_b_rrn, &p_b_key, duplicatedKey);
   if (!promoted)
   {
@@ -319,14 +328,14 @@ int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_ke
   
   if(page.keycount < MAXKEYS)
   {
-    // se ainda tem espaco na pagina, inserir nela mesmo
+    // inserir na pagina se nao ocorre overflow
     inserePage(p_b_key, p_b_rrn, &page);
     escrevePage(rrn, &page);
     return(NO);
   }
   else
   {
-    // senao, realizar divisao da pagina
+    // se ocorre overflow, divisao de pagina
     printf(" Divisao de No.\n");
     split(p_b_key, p_b_rrn, &page, promo_key, promo_r_child, &newpage);
     printf(" Chave %d Promovida.\n", promo_key->codigoControle);
@@ -337,7 +346,12 @@ int insere(short rrn, regAP1Page key, short *promo_r_child, regAP1Page *promo_ke
     return(YES);
   }
 }
-
+/***********************************************************************************************************
+Funcao: insereBTree
+Parametro: chave a ser inserida e o rrn da chave no arquivo de dados
+Retorno: 1 se inseriu com sucesso, ou 0 senao
+Descricao: a funcao cria as paginas pra receber a nova chave e incapsula as outras funcoes necessarias
+************************************************************************************************************/
 int insereBTree(int codControle, short RRN){
 
   regAP1Page new_key, promoted_key;
@@ -349,18 +363,18 @@ int insereBTree(int codControle, short RRN){
   
   printf("\n ARVORE B");
   if (btroot == NIL){
-    // criar o no raiz se a arvore estiver vazia
+    // cria a raiz em caso de a arvore estar vazia
     btroot = criaRaiz(new_key, NIL, NIL);
     result = 1;
   }
   else{
-    // senao, tentar inserir
+    
     if(insere(btroot, new_key, &promoted_r_child, &promoted_key, &chave_dup)){
-      // se essa primeira chamada retornar registro prmovido, atualizar root
+      // atualiza raiz quando necessario
       btroot = criaRaiz(promoted_key, btroot, promoted_r_child);
     }
         
-    result = !chave_dup; // indicar resultado da insercao 
+    result = !chave_dup; // cria o retorno da fnçao, em caso de chave duplicada, nao é possivel inserir 
   }
   
   if (result)
@@ -538,7 +552,6 @@ Descricao: Abre arquivos e inicia índices se necessário
 void inicializar() 
 {
 	int size;
-	char valorRoot[5];
 	
 	fpAP1   = fileOpen(Ap1);
 	fpAP2   = fileOpen(Ap2);
@@ -552,13 +565,11 @@ void inicializar()
     size = ftell(fpBtree);
     rewind(fpBtree);
     if(size){
-    	fread(valorRoot, sizeof(short), 1, fpBtree);
-    	btroot = (short) atoi(valorRoot);
+    	fread(&btroot, sizeof(short), 1, fpBtree);
 	}
 	else{
 		btroot = NIL;
-		itoa(btroot, valorRoot, 10);
-		fwrite(valorRoot, sizeof(short), 1, fpBtree);
+		fwrite(&btroot, sizeof(short), 1, fpBtree);
 	}
 }
 
@@ -695,7 +706,7 @@ void percursoEmOrdem(short rrn){
     	return;
     
     pegaPage(rrn, &auxPage);
- 	printf("num de ch na raiz %d, prox filho %d       %d",auxPage.keycount,auxPage.child[1],auxPage.child[0]);   
+    
     for (i = 0; i < auxPage.keycount; i++)
     {
     	if(auxPage.child[i] != NIL)
@@ -717,8 +728,16 @@ Retorno: -
 Descricao: Lista vacinas, chamando a função percursoEmOrdem
 ************************************************************************************************************/	
 void listaVacinas(){
+	
 	percursoEmOrdem(btroot);
 }
+
+/***********************************************************************************************************
+Funcao: buscaBTree
+Parametro: rrn das paginas filhas, codigo a ser buscado
+Retorno: 1 se a chave se encontra na arvore e 0 senao
+Descricao: a funcao eh recursiva passando o rrn da pagina filha de acordo com o codigo a ser buscado 
+************************************************************************************************************/	
 
 int buscaBTree(int rrn, int codigo)
 {
@@ -746,6 +765,13 @@ int buscaBTree(int rrn, int codigo)
     
     return NO;
 }
+
+/***********************************************************************************************************
+Funcao: buscaArvore
+Parametro: codigo da vacina
+Retorno: -
+Descricao: faz a chamada da funcao que faz a busca na arvore 
+************************************************************************************************************/	
 
 void buscaArvore(int codigo)
 {
