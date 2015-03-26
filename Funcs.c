@@ -734,11 +734,18 @@ void listaVacinas(){
 
 /***********************************************************************************************************
 Funcao: buscaBTree
+<<<<<<< HEAD
 Parametro: rrn das paginas filhas, codigo a ser buscado
 Retorno: 1 se a chave se encontra na arvore e 0 senao
 Descricao: a funcao eh recursiva passando o rrn da pagina filha de acordo com o codigo a ser buscado 
 ************************************************************************************************************/	
 
+=======
+Parametros: RRN do registro no índice, código da vacina a ser procurada 
+Retorno: YES - se chave encontrada; NO - se não encontrada
+Descricao: Realiza a busca no índice em árvore-B
+************************************************************************************************************/
+>>>>>>> fd58cfb56613ea1ebf46d6bd780c918ff233e846
 int buscaBTree(int rrn, int codigo)
 {
     regBTPage auxPage;
@@ -768,11 +775,18 @@ int buscaBTree(int rrn, int codigo)
 
 /***********************************************************************************************************
 Funcao: buscaArvore
+<<<<<<< HEAD
 Parametro: codigo da vacina
 Retorno: -
 Descricao: faz a chamada da funcao que faz a busca na arvore 
 ************************************************************************************************************/	
 
+=======
+Parametros: Código da vacina a ser procurada 
+Retorno: -
+Descricao: Chama a função de busca no índice em árvore-B
+************************************************************************************************************/
+>>>>>>> fd58cfb56613ea1ebf46d6bd780c918ff233e846
 void buscaArvore(int codigo)
 {
     if (!buscaBTree(btroot, codigo))
@@ -781,4 +795,3 @@ void buscaArvore(int codigo)
        printf(" Chave inexistente!");
     }
 }
-

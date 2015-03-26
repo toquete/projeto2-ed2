@@ -19,6 +19,7 @@
 #define LISTA         2
 #define PESQUISA      3
 
+<<<<<<< HEAD
 
 /*************************************************************************************
 Funcao: cabecalho
@@ -28,6 +29,15 @@ Descricao: mostra o cabecalho dependendo de cada operacao
 ************************************************************************************/
 
 int cabecalho(int tipomenu)
+=======
+/***********************************************************************************************************
+Funcao: cabecalho
+Parametros: tipo do menu a ser mostrado
+Retorno: -
+Descricao: Imprime um cabecalho especifico a cada opção
+************************************************************************************************************/
+void cabecalho(int tipomenu)
+>>>>>>> fd58cfb56613ea1ebf46d6bd780c918ff233e846
 {
     system("CLS");
     printf("------------------------------------------------------------------------------\n");
@@ -70,6 +80,12 @@ int cabecalho(int tipomenu)
     }
 }
 
+/***********************************************************************************************************
+Funcao: validaOpcao
+Parametros: opção a ser validada
+Retorno: -
+Descricao: Valida a opção passada por parâmetro e chama a função adequada.
+************************************************************************************************************/
 void validaOpcao(int opcao)
 { 
     int op, selecao;
